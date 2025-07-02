@@ -70,7 +70,7 @@ By default only keep the log buffer alive for failed tasks."
       "Yank commands menu."
       [:description
        (lambda () (dirvish--format-menu-heading
-              "Select yank operation on marked files:"))
+		   "Select yank operation on marked files:"))
        ,@pairs]
       (interactive)
       (if (derived-mode-p 'dired-mode)
@@ -212,7 +212,7 @@ is t."
   (let* ((process-connection-type nil) (name "*dirvish-yank*")
          (buf (get-buffer-create (format "*yank@%s*" (current-time-string))))
          (fn (lambda () (setq dirvish-yank-log-buffers
-                         (delete buf dirvish-yank-log-buffers))))
+                              (delete buf dirvish-yank-log-buffers))))
          (proc (if (listp cmd)
                    (make-process :name name :buffer buf :command cmd)
                  (start-process-shell-command name buf cmd))))

@@ -260,13 +260,11 @@ File `%s' exists, type one of the following keys to continue.
 - q or ESC to abort the task" src)
    for base = (file-name-nondirectory src)
    for collision = (member base dfiles) do
-   (cond ((equal src (concat dest base))
-          ;; user may want to make symlink in the same directory
-          (if (memq method '(dired-make-relative-symlink make-symbolic-link))
-              (push (cons src (cdr (dirvish-yank--newbase base dfiles dest)))
-                    result)
-            (user-error
-             "DIRVISH[yank]: source and target are the same file `%s'" src)))
+   (cond ((and (equal src (concat dest base))
+               ;; user may want to make symlink in the same directory
+	       (memq method '(dired-make-relative-symlink make-symbolic-link)))
+          (push (cons src (cdr (dirvish-yank--newbase base dfiles dest)))
+                result))
          (overwrite (push (cons src dest) result))
          ((and backup collision)
           (push (dirvish-yank--newbase base dfiles dest) to-rename)

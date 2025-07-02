@@ -49,7 +49,7 @@ The value can be a symbol or a function that returns a fileset."
                  (const :tag "always overwrite" always)
                  (const :tag "skip transferring files with same names" skip)
                  (const :tag "overwrite and backup the original file" backup)
-                 (const :tag "duplicate the original file" duplicate)))
+		 (const :tag "duplicate the original file" duplicate)))
 
 (defcustom dirvish-yank-new-name-style 'append-to-ext
   "Control the way to compose new filename."
@@ -273,9 +273,9 @@ File `%s' exists, type one of the following keys to continue.
          ((and backup collision)
           (push (dirvish-yank--newbase base dfiles dest) to-rename)
           (push (cons src dest) result))
-         ((and duplicate collision)
-          (push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
-          (push (cons src dest) result))
+	 ((and duplicate collision)
+	  (push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
+	  (push (cons src dest) result))
          ((and skip collision))
          (collision
           (cl-case (read-char-choice

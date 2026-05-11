@@ -29,13 +29,13 @@
 (require 'dirvish)
 (require 'transient)
 
-(defcustom dirvish-yank-sources 'all
+(defcustom dirvish-yank-sources 'all-marked
   "The way to collect source files.
 The value can be a symbol or a function that returns a fileset."
   :group 'dirvish
   :type '(choice (const :tag "Marked files in current buffer" buffer)
                  (const :tag "Marked files in current session" session)
-                 (const :tag "Marked files in all Dired buffers" all)
+                 (const :tag "Marked files in all Dired buffers" all-marked)
                  (function :tag "Custom function")))
 
 (defcustom dirvish-yank-auto-unmark t
@@ -111,7 +111,7 @@ CMD, DOC is the documentation string."
 
 (defun dirvish-yank--get-srcs (&optional range)
   "Get all marked filenames in RANGE.
-RANGE can be `buffer', `session', `all'."
+RANGE can be `buffer', `session', `all-marked'."
   (setq range (or range 'buffer))
   (cl-remove-duplicates
    (cl-loop
@@ -120,7 +120,7 @@ RANGE can be `buffer', `session', `all'."
     with buffers = (pcase range
                      ('buffer (list (current-buffer)))
                      ('session (mapcar #'cdr (dv-roots (dirvish-curr))))
-                     ('all (cl-loop for b in (buffer-list)
+                     ('all-marked (cl-loop for b in (buffer-list)
                                     when (with-current-buffer b
                                            (derived-mode-p 'dired-mode))
                                     collect b)))

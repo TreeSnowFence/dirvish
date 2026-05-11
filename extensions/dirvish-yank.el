@@ -111,7 +111,7 @@ CMD, DOC is the documentation string."
 
 (defun dirvish-yank--get-srcs (&optional range)
   "Get all marked filenames in RANGE.
-RANGE can be `buffer', `session', `all'."
+RANGE can be `buffer', `session', `all-marked'."
   (setq range (or range 'buffer))
   (cl-remove-duplicates
    (cl-loop
@@ -121,9 +121,9 @@ RANGE can be `buffer', `session', `all'."
                      ('buffer (list (current-buffer)))
                      ('session (mapcar #'cdr (dv-roots (dirvish-curr))))
                      ('all-marked (cl-loop for b in (buffer-list)
-                                           when (with-current-buffer b
-                                                  (derived-mode-p 'dired-mode))
-                                           collect b)))
+                                    when (with-current-buffer b
+                                           (derived-mode-p 'dired-mode))
+                                    collect b)))
     for buffer in (seq-filter #'buffer-live-p buffers) append
     (with-current-buffer buffer
       (when (save-excursion (goto-char (point-min))

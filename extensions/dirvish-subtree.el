@@ -269,19 +269,18 @@ When CLEAR, remove all subtrees in the buffer."
    finally (and index (if clear (dired-goto-file index)
                         (dirvish-subtree-expand-to index)))))
 
-(defun dirvish-subtree-default-file-viewer (orig-buffer)
+(defun dirvish-subtree-default-file-viewer ()
   "Default `dirvish-subtree-file-viewer'.
 Try executing `consult-lsp-file-symbols', `consult-imenu',
 `consult-line' and `imenu' sequentially until one of them
-succeed, switch back to ORIG-BUFFER afterwards regardlessly."
+succeed."
   (unwind-protect
       (condition-case nil (consult-lsp-file-symbols t)
         (error (condition-case nil (consult-imenu)
                  (error (condition-case nil (consult-line)
                           (error (message "Failed to view file `%s'. \
 See `dirvish-subtree-file-viewer' for details"
-                                          buffer-file-name)))))))
-    (switch-to-buffer orig-buffer)))
+                                          buffer-file-name)))))))))
 
 (dirvish-define-attribute subtree-state
   "A indicator for directory expanding state."
@@ -381,18 +380,10 @@ See `dirvish-subtree-file-viewer' for details"
   (let* ((index (dirvish-prop :index))
          (file (or (and (dirvish-prop :remote)
                         (user-error "Remote file `%s' not previewed" index))
-                   index))
-         (buf (or (get-file-buffer file) (find-file-noselect file)))
-         orig-buf)
-    (when (with-current-buffer buf
-            (save-excursion (goto-char (point-min))
-                            (search-forward "\0" nil 'noerror)))
-      (kill-buffer buf)
-      (user-error "Binary file `%s' not previewed" file))
-    (with-selected-window (or (get-buffer-window buf) (next-window))
-      (setq orig-buf (current-buffer))
-      (switch-to-buffer buf)
-      (funcall dirvish-subtree-file-viewer orig-buf))))
+                   index)))
+    (dirvish--clear-session (dirvish-curr))
+    (find-file file)
+    (funcall dirvish-subtree-file-viewer)))
 
 (defalias 'dirvish-toggle-subtree #'dirvish-subtree-toggle
   "Insert subtree at point or remove it if it was not present.")

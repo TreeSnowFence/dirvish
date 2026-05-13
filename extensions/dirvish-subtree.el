@@ -380,16 +380,10 @@ See `dirvish-subtree-file-viewer' for details"
   (let* ((index (dirvish-prop :index))
          (file (or (and (dirvish-prop :remote)
                         (user-error "Remote file `%s' not previewed" index))
-                   index))
-         (buf (or (get-file-buffer file) (find-file-noselect file))))
-    (when (with-current-buffer buf
-            (save-excursion (goto-char (point-min))
-                            (search-forward "\0" nil 'noerror)))
-      (kill-buffer buf)
-      (user-error "Binary file `%s' not previewed" file))
-    (with-selected-window (or (get-buffer-window buf) (next-window))
-      (switch-to-buffer buf)
-      (funcall dirvish-subtree-file-viewer))))
+                   index)))
+    (dirvish--clear-session (dirvish-curr))
+    (find-file file)
+    (funcall dirvish-subtree-file-viewer)))
 
 (defalias 'dirvish-toggle-subtree #'dirvish-subtree-toggle
   "Insert subtree at point or remove it if it was not present.")

@@ -381,8 +381,7 @@ See `dirvish-subtree-file-viewer' for details"
          (file (or (and (dirvish-prop :remote)
                         (user-error "Remote file `%s' not previewed" index))
                    index))
-         (buf (or (get-file-buffer file) (find-file-noselect file)))
-         )
+         (buf (or (get-file-buffer file) (find-file-noselect file))))
     (when (with-current-buffer buf
             (save-excursion (goto-char (point-min))
                             (search-forward "\0" nil 'noerror)))

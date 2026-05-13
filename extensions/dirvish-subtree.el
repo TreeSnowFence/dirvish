@@ -380,8 +380,17 @@ See `dirvish-subtree-file-viewer' for details"
   (let* ((index (dirvish-prop :index))
          (file (or (and (dirvish-prop :remote)
                         (user-error "Remote file `%s' not previewed" index))
-                   index)))
-    (dirvish--clear-session (dirvish-curr))
+                   index))
+	 (session (dirvish-curr)))
+    ;; TODO: This is a fix from previous version introduced in
+    ;; https://github.com/latiagertrutis/dirvish/pull/2
+    ;; We should revise this to check if the original behavior has
+    ;; been changed. Maybe was intended to show the symbol in preview buffer
+
+    ;; This will clear the current session to allow consult functions
+    ;; to behave as expected. 'quit symbol is important for dirvish-side
+    ;; to work correctly, otherwise side buffer will break the view
+    (dirvish--clear-session session 'quit)
     (find-file file)
     (funcall dirvish-subtree-file-viewer)))
 

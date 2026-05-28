@@ -19,6 +19,7 @@
 (declare-function consult-lsp-file-symbols "consult-lsp")
 (declare-function consult-imenu "consult-imenu")
 (declare-function consult-line "consult")
+(declare-function dirvish-side-session-visible-p "dirvish-side")
 (require 'dirvish)
 (require 'dired-x)
 (require 'transient)
@@ -269,18 +270,29 @@ When CLEAR, remove all subtrees in the buffer."
    finally (and index (if clear (dired-goto-file index)
                         (dirvish-subtree-expand-to index)))))
 
-(defun dirvish-subtree-default-file-viewer ()
+(defun dirvish-subtree-default-file-viewer (orig-buf)
   "Default `dirvish-subtree-file-viewer'.
 Try executing `consult-lsp-file-symbols', `consult-imenu',
 `consult-line' and `imenu' sequentially until one of them
-succeed."
+succeed, returning line user navigates to."
+
+  (let* ((new-line nil))
   (unwind-protect
       (condition-case nil (consult-lsp-file-symbols t)
+        (quit nil)
+        (:success (setq new-line (line-number-at-pos)))
         (error (condition-case nil (consult-imenu)
+                 (quit nil)
+                 (:success (setq new-line (line-number-at-pos)))
                  (error (condition-case nil (consult-line)
+                          (quit nil)
+                          (:success (setq new-line (line-number-at-pos)))
                           (error (message "Failed to view file `%s'. \
 See `dirvish-subtree-file-viewer' for details"
-                                          buffer-file-name)))))))))
+                                          buffer-file-name)))))))
+      (switch-to-buffer orig-buf))
+    new-line))
+
 
 (dirvish-define-attribute subtree-state
   "A indicator for directory expanding state."
@@ -381,18 +393,26 @@ See `dirvish-subtree-file-viewer' for details"
          (file (or (and (dirvish-prop :remote)
                         (user-error "Remote file `%s' not previewed" index))
                    index))
-	 (session (dirvish-curr)))
-    ;; TODO: This is a fix from previous version introduced in
-    ;; https://github.com/latiagertrutis/dirvish/pull/2
-    ;; We should revise this to check if the original behavior has
-    ;; been changed. Maybe was intended to show the symbol in preview buffer
+	 (session (dirvish-curr))
+         (preview (dv-preview-window session))
+         (buf (if preview (window-buffer preview) (find-file-noselect file)))
+         (new-line nil)
+         orig-buf)
+    ;; TODO: investigate ui issues with helm
+    (when (with-current-buffer buf
+            (save-excursion (goto-char (point-min))
+                            (search-forward "\0" nil 'noerror)))
+      (kill-buffer buf)
+      (user-error "Binary file `%s' not previewed" file))
+    (with-selected-window (or (get-buffer-window buf) (next-window))
+      (setq orig-buf (current-buffer))
+      (switch-to-buffer buf)
+      (setq new-line (funcall dirvish-subtree-file-viewer orig-buf))
+      (if (dirvish-side-session-visible-p) (select-window (dv-root-window session)) (switch-to-buffer orig-buf)))
+    (when new-line
+         (dired-find-file)
+         (goto-line new-line))))
 
-    ;; This will clear the current session to allow consult functions
-    ;; to behave as expected. 'quit symbol is important for dirvish-side
-    ;; to work correctly, otherwise side buffer will break the view
-    (dirvish--clear-session session 'quit)
-    (find-file file)
-    (funcall dirvish-subtree-file-viewer)))
 
 (defalias 'dirvish-toggle-subtree #'dirvish-subtree-toggle
   "Insert subtree at point or remove it if it was not present.")

@@ -110,6 +110,8 @@ filename until the project root when opening a side session."
    for b = (window-buffer w)
    for dv = (with-current-buffer b (dirvish-curr))
    thereis (and dv (eq 'side (dv-type dv)) w)))
+(define-obsolete-function-alias 'dirvish-side--session-visible-p 'dirvish-side-session-visible-p
+  "05/28/26" "Function renamed as it is no longer private")
 
 (defun dirvish-side--auto-jump ()
   "Select latest buffer file in the visible `dirvish-side' session."

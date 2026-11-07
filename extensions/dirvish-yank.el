@@ -266,7 +266,7 @@ File `%s' exists, type one of the following keys to continue.
    for collision = (member base dfiles) do
    (cond ((and (equal src (concat dest base))
                ;; user may want to make symlink in the same directory
-	       (memq method '(dired-make-relative-symlink make-symbolic-link)))
+               (memq method '(dired-make-relative-symlink make-symbolic-link)))
           (push (cons src (cdr (dirvish-yank--newbase base dfiles dest)))
                 result))
          (overwrite (push (cons src dest) result))
@@ -280,7 +280,7 @@ File `%s' exists, type one of the following keys to continue.
          (collision
           (cl-case (read-char-choice
                     (concat (format-message "Overwrite `%s'?" base)
-                            (format " [Type y!nNbBdDq or %s] "
+                            (format " [Type y!nNbBdDq or %s for help] "
                                     (key-description (vector help-char))))
                     '(?y ?\s ?! ?n ?\177 ?N ?b ?B ?d ?D ?q ?\e))
             ((?y ?\s) (push (cons src dest) result))
@@ -292,12 +292,12 @@ File `%s' exists, type one of the following keys to continue.
             (?B (setq backup t)
                 (push (dirvish-yank--newbase base dfiles dest) to-rename)
                 (push (cons src dest) result))
-	    (?d (push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
-		(push (cons src dest) result))
-	    (?D (setq duplicate t)
-		(push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
-		(push (cons src dest) result))
-	    ((?q ?\e) (user-error "DIRVISH[yank]: task aborted"))))
+            (?d (push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
+                (push (cons src dest) result))
+            (?D (setq duplicate t)
+                (push (dirvish-yank--newbase base dfiles dest "-copy") to-copy)
+                (push (cons src dest) result))
+            ((?q ?\e) (user-error "DIRVISH[yank]: task aborted"))))
          (t (push (cons src dest) result)))
    finally return
    (prog1 result
@@ -352,7 +352,9 @@ It sets the value for every variable matching INCLUDE-REGEXP."
 (defun dirvish-yank--apply (method dest)
   "Apply yank METHOD to DEST."
   (setq dest (expand-file-name (or dest (dired-current-directory))))
-  (let ((srcs (or (and (functionp dirvish-yank-sources)
+  (let ((srcs (or (and (not (member dirvish-yank-sources
+                                    '(all-marked session buffer)))
+                       (functionp dirvish-yank-sources)
                        (funcall dirvish-yank-sources))
                   (dirvish-yank--get-srcs dirvish-yank-sources)
                   (user-error "DIRVISH[yank]: no marked files"))))
